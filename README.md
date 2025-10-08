@@ -53,7 +53,7 @@ packages
   ├─ auth
   │   └─ Authentication using better-auth.
   ├─ db
-  │   └─ Typesafe db calls using Drizzle & Supabase
+  │   └─ Typesafe db calls using Prisma & PostgreSQL
   └─ ui
       └─ Start of a UI package for the webapp using shadcn-ui
 tooling
@@ -72,7 +72,7 @@ tooling
 ## Quick Start
 
 > **Note**
-> The [db](./packages/db) package is preconfigured to use Supabase and is **edge-bound** with the [Vercel Postgres](https://github.com/vercel/storage/tree/main/packages/postgres) driver. For **local development**, this template now includes a Docker Compose configuration that automatically sets up a PostgreSQL database. The `dev` scripts will handle starting the database and running migrations automatically. For production deployments with Supabase, make the necessary modifications to the [schema](./packages/db/src/schema.ts) as well as the [client](./packages/db/src/index.ts) and the [drizzle config](./packages/db/drizzle.config.ts). If you want to switch to non-edge database driver, remove `export const runtime = "edge";` [from all pages and api routes](https://github.com/t3-oss/create-t3-turbo/issues/634#issuecomment-1730240214).
+> The [db](./packages/db) package is now configured to use **Prisma ORM** with PostgreSQL. For **local development**, this template includes a Docker Compose configuration that automatically sets up a PostgreSQL database. The `dev` scripts will handle starting the database and running migrations automatically. The Prisma schema is located at `packages/db/prisma/schema.prisma`.
 
 > **Docker Required**
 > Make sure you have [Docker](https://www.docker.com/get-started) installed and running on your machine before running the dev scripts. The PostgreSQL database will run in a Docker container.
@@ -94,8 +94,9 @@ cp .env.example .env
 
 # The dev scripts will automatically:
 # 1. Start PostgreSQL in Docker (docker compose up -d)
-# 2. Push the Drizzle schema to the database (pnpm db:push)
-# 3. Start the development servers
+# 2. Generate Prisma Client (pnpm -F @acme/db generate)
+# 3. Push the Prisma schema to the database (pnpm -F @acme/db push)
+# 4. Start the development servers
 
 # Or manually start the database and push the schema:
 pnpm db:start
@@ -115,13 +116,13 @@ pnpm --filter @acme/auth generate
 This command runs the Better Auth CLI with the following configuration:
 
 - **Config file**: `packages/auth/script/auth-cli.ts` - A CLI-only configuration file (isolated from src to prevent imports)
-- **Output**: `packages/db/src/auth-schema.ts` - Generated Drizzle schema for authentication tables
+- **Output**: Prisma schema models are defined in `packages/db/prisma/schema.prisma`
 
 The generation process:
 
 1. Reads the Better Auth configuration from `packages/auth/script/auth-cli.ts`
 2. Generates the appropriate database schema based on your auth setup
-3. Outputs a Drizzle-compatible schema file to the `@acme/db` package
+3. The authentication tables are already defined in the Prisma schema at `packages/db/prisma/schema.prisma`
 
 > **Note**: The `auth-cli.ts` file is placed in the `script/` directory (instead of `src/`) to prevent accidental imports from other parts of the codebase. This file is exclusively for CLI schema generation and should **not** be used directly in your application. For runtime authentication, use the configuration from `packages/auth/src/index.ts`.
 
