@@ -10,8 +10,52 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
-import type { Auth } from "@acme/auth";
+import type { Auth, Session } from "@acme/auth";
 import { db } from "@acme/db/client";
+
+interface CreateTRPCContextOptions {
+  headers: Headers;
+  auth: Auth;
+}
+
+interface TRPCContext {
+  authApi: Auth["api"];
+  session: Session | null;
+  db: typeof db;
+}
+
+export interface TRPCContextPortable {
+  authApi?: {
+    provider?: string;
+  } | null;
+  session: {
+    user?: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+    } | null;
+  } | null;
+}
+
+type Serializable<T> = T extends (...args: unknown[]) => unknown
+  ? never
+  : T extends Date
+    ? string
+    : // Preserve tuple types by mapping their elements
+      T extends readonly [...infer E]
+      ? { [K in keyof E]: Serializable<E[K]> }
+      : T extends readonly (infer U)[]
+        ? readonly Serializable<U>[]
+        : T extends (infer U)[]
+          ? Serializable<U>[]
+          : T extends object
+            ? { [K in keyof T]: Serializable<T[K]> }
+            : T;
+
+type _DerivedPortable = Serializable<Omit<TRPCContext, "db">>;
+export interface TRPCContextPortableDerived extends _DerivedPortable {
+  _portable?: true;
+}
 
 /**
  * 1. CONTEXT
@@ -26,10 +70,9 @@ import { db } from "@acme/db/client";
  * @see https://trpc.io/docs/server/context
  */
 
-export const createTRPCContext = async (opts: {
-  headers: Headers;
-  auth: Auth;
-}) => {
+export const createTRPCContext = async (
+  opts: CreateTRPCContextOptions,
+): Promise<TRPCContext> => {
   const authApi = opts.auth.api;
   const session = await authApi.getSession({
     headers: opts.headers,
@@ -37,6 +80,7 @@ export const createTRPCContext = async (opts: {
   return {
     authApi,
     session,
+    // return the real db at runtime, but its compile-time type is `any`
     db,
   };
 };
@@ -46,7 +90,7 @@ export const createTRPCContext = async (opts: {
  * This is where the trpc api is initialized, connecting the context and
  * transformer
  */
-const t = initTRPC.context<typeof createTRPCContext>().create({
+const t = initTRPC.context<TRPCContext>().create({
   transformer: superjson,
   errorFormatter: ({ shape, error }) => ({
     ...shape,
@@ -116,13 +160,21 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
-    if (!ctx.session?.user) {
+    // Narrow `ctx.session` to a shape we can rely on without leaking
+    // external types. We expect session to be an object with optional `user`.
+    let session: { user?: unknown } | undefined;
+    if (ctx.session && typeof ctx.session === "object") {
+      session = ctx.session as { user?: unknown };
+    } else {
+      session = undefined;
+    }
+    if (!session?.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
     return next({
       ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
+        // safely assert session.user exists for downstream handlers
+        session: { ...session, user: session.user },
       },
     });
   });

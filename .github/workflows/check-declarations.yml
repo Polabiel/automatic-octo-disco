@@ -1,0 +1,51 @@
+name: Check exported declarations for Prisma leakage
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check-declarations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: pnpm/action-setup@v2
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build TS declarations for packages/api (emitDeclarationOnly)
+        working-directory: packages/api
+        run: |
+          set -euo pipefail
+          # Ensure types-only build into dist-types
+          npx -y tsc --emitDeclarationOnly --declaration --outDir dist-types
+        env:
+          CI: true
+
+      - name: Find leaked references in generated types
+        run: |
+          set -euo pipefail
+          DSTD=packages/api/dist-types
+          if [ ! -d "$DSTD" ]; then
+            echo "dist-types directory not found at $DSTD"; exit 1
+          fi
+          echo "Scanning $DSTD for bad tokens..."
+          # tokens that indicate Prisma/client internals or node_modules paths
+          GREP_PATTERN='@prisma|/node_modules/|runtime/library|@acme/db/node_modules'
+          matches=$(grep -RInE "$GREP_PATTERN" "$DSTD" || true)
+          if [ -n "$matches" ]; then
+            echo "Found leaked type references in generated declarations:";
+            echo "$matches";
+            exit 1
+          fi
+          echo "No leaked references found."
+
+      - name: Success message
+        run: echo "Declaration check passed"

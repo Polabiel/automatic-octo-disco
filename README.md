@@ -133,12 +133,13 @@ For more information about the Better Auth CLI, see the [official documentation]
 The root `package.json` now includes convenient scripts that automatically start the database before launching the development servers:
 
 - `pnpm dev:android` - Starts PostgreSQL + Expo with Android emulator
-- `pnpm dev:ios` - Starts PostgreSQL + Expo with iOS simulator  
+- `pnpm dev:ios` - Starts PostgreSQL + Expo with iOS simulator
 - `pnpm dev:web` - Starts PostgreSQL + Next.js web app
 - `pnpm dev:all` - Starts PostgreSQL + all services (Expo + Next.js)
 - `pnpm dev` - Same as `dev:all`
 
 These scripts will automatically:
+
 1. Start the PostgreSQL database in Docker
 2. Run database migrations
 3. Start the respective development servers
@@ -295,3 +296,25 @@ Deploying your Expo application works slightly differently compared to Next.js o
 The stack originates from [create-t3-app](https://github.com/t3-oss/create-t3-app).
 
 A [blog post](https://jumr.dev/blog/t3-turbo) where I wrote how to migrate a T3 app into this.
+
+## Nota sobre Prisma e Next.js
+
+Se você encontrar erros do tipo "Prisma Client could not locate the Query Engine for runtime \"debian-openssl-3.0.x\"" ou versões conflitantes de `@prisma/client` entre pacotes, há um script útil incluído para unificar a versão do Prisma no monorepo e garantir que a engine do query esteja disponível para o Next.js.
+
+Uso rápido:
+
+```bash
+# roda o script com a versão alvo (ex: 6.17.0). Se não passado, o script tenta detectar a versão.
+bash ./scripts/fix-prisma-engines.sh 6.17.0
+
+# ou simplesmente rode o postinstall já configurado
+pnpm i
+```
+
+O script faz:
+
+- Instala `@prisma/client` e `prisma` na mesma versão no workspace root (pnpm -w add -W)
+- Executa `prisma generate` para os schemas padrões
+- Copia a(s) engine(s) libquery_engine-\*.so.node para `apps/nextjs/node_modules/.prisma/client` quando necessário
+
+Se o problema persistir, verifique manualmente se `apps/nextjs/node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node` existe e rode `pnpm -w exec prisma generate --schema=packages/prisma/schema.prisma`.
