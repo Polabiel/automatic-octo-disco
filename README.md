@@ -53,7 +53,7 @@ packages
   ├─ auth
   │   └─ Authentication using better-auth.
   ├─ db
-  │   └─ Typesafe db calls using Drizzle & Supabase
+  │   └─ Typesafe db calls using Prisma & PostgreSQL
   └─ ui
       └─ Start of a UI package for the webapp using shadcn-ui
 tooling
@@ -72,7 +72,10 @@ tooling
 ## Quick Start
 
 > **Note**
-> The [db](./packages/db) package is preconfigured to use Supabase and is **edge-bound** with the [Vercel Postgres](https://github.com/vercel/storage/tree/main/packages/postgres) driver. If you're using something else, make the necessary modifications to the [schema](./packages/db/src/schema.ts) as well as the [client](./packages/db/src/index.ts) and the [drizzle config](./packages/db/drizzle.config.ts). If you want to switch to non-edge database driver, remove `export const runtime = "edge";` [from all pages and api routes](https://github.com/t3-oss/create-t3-turbo/issues/634#issuecomment-1730240214).
+> The [db](./packages/db) package is now configured to use **Prisma ORM** with PostgreSQL. For **local development**, this template includes a Docker Compose configuration that automatically sets up a PostgreSQL database. The `dev` scripts will handle starting the database and running migrations automatically. The Prisma schema is located at `packages/db/prisma/schema.prisma`.
+
+> **Docker Required**
+> Make sure you have [Docker](https://www.docker.com/get-started) installed and running on your machine before running the dev scripts. The PostgreSQL database will run in a Docker container.
 
 To get it running, follow the steps below:
 
@@ -86,9 +89,20 @@ pnpm i
 # There is an `.env.example` in the root directory you can use for reference
 cp .env.example .env
 
-# Push the Drizzle schema to the database
-pnpm db:push
+# For local development with Docker PostgreSQL, update the POSTGRES_URL in .env to:
+# POSTGRES_URL="postgresql://postgres:postgres@localhost:5432/acme"
+
+# The dev scripts will automatically:
+# 1. Start PostgreSQL in Docker (docker compose up -d)
+# 2. Generate Prisma Client (pnpm -F @acme/db generate)
+# 3. Push the Prisma schema to the database (pnpm -F @acme/db push)
+# 4. Start the development servers
+
+# Or manually start the database and push the schema:
+pnpm db:start
 ```
+
+> **Note**: Make sure you have Docker installed and running on your machine. The PostgreSQL database will run in a Docker container on port 5432.
 
 ### 2. Generate Better Auth Schema
 
@@ -102,13 +116,13 @@ pnpm --filter @acme/auth generate
 This command runs the Better Auth CLI with the following configuration:
 
 - **Config file**: `packages/auth/script/auth-cli.ts` - A CLI-only configuration file (isolated from src to prevent imports)
-- **Output**: `packages/db/src/auth-schema.ts` - Generated Drizzle schema for authentication tables
+- **Output**: Prisma schema models are defined in `packages/db/prisma/schema.prisma`
 
 The generation process:
 
 1. Reads the Better Auth configuration from `packages/auth/script/auth-cli.ts`
 2. Generates the appropriate database schema based on your auth setup
-3. Outputs a Drizzle-compatible schema file to the `@acme/db` package
+3. The authentication tables are already defined in the Prisma schema at `packages/db/prisma/schema.prisma`
 
 > **Note**: The `auth-cli.ts` file is placed in the `script/` directory (instead of `src/`) to prevent accidental imports from other parts of the codebase. This file is exclusively for CLI schema generation and should **not** be used directly in your application. For runtime authentication, use the configuration from `packages/auth/src/index.ts`.
 
@@ -116,29 +130,32 @@ For more information about the Better Auth CLI, see the [official documentation]
 
 ### 3. Configure Expo `dev`-script
 
+The root `package.json` now includes convenient scripts that automatically start the database before launching the development servers:
+
+- `pnpm dev:android` - Starts PostgreSQL + Expo with Android emulator
+- `pnpm dev:ios` - Starts PostgreSQL + Expo with iOS simulator  
+- `pnpm dev:web` - Starts PostgreSQL + Next.js web app
+- `pnpm dev:all` - Starts PostgreSQL + all services (Expo + Next.js)
+- `pnpm dev` - Same as `dev:all`
+
+These scripts will automatically:
+1. Start the PostgreSQL database in Docker
+2. Run database migrations
+3. Start the respective development servers
+
 #### Use iOS Simulator
 
 1. Make sure you have XCode and XCommand Line Tools installed [as shown on expo docs](https://docs.expo.dev/workflow/ios-simulator).
 
-   > **NOTE:** If you just installed XCode, or if you have updated it, you need to open the simulator manually once. Run `npx expo start` from `apps/expo`, and then enter `I` to launch Expo Go. After the manual launch, you can run `pnpm dev` in the root directory.
+   > **NOTE:** If you just installed XCode, or if you have updated it, you need to open the simulator manually once. Run `npx expo start` from `apps/expo`, and then enter `I` to launch Expo Go. After the manual launch, you can run `pnpm dev:ios` in the root directory.
 
-   ```diff
-   +  "dev": "expo start --ios",
-   ```
-
-2. Run `pnpm dev` at the project root folder.
+2. Run `pnpm dev:ios` at the project root folder.
 
 #### Use Android Emulator
 
 1. Install Android Studio tools [as shown on expo docs](https://docs.expo.dev/workflow/android-studio-emulator).
 
-2. Change the `dev` script at `apps/expo/package.json` to open the Android emulator.
-
-   ```diff
-   +  "dev": "expo start --android",
-   ```
-
-3. Run `pnpm dev` at the project root folder.
+2. Run `pnpm dev:android` at the project root folder.
 
 ### 4. Configuring Better-Auth to work with Expo
 
