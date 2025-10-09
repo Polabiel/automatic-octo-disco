@@ -56,6 +56,23 @@ packages
   │   └─ Typesafe db calls using Prisma & PostgreSQL
   └─ ui
       └─ Start of a UI package for the webapp using shadcn-ui
+
+## Features
+
+### 🔐 Authentication
+- Better Auth integration with Discord OAuth
+- Session management
+- Secure authentication flow
+
+### 💳 PIX Subscription Billing (SaaS)
+Complete PIX-based subscription billing system:
+- **Subscription Plans**: Create and manage subscription tiers
+- **Subscriptions**: User subscription lifecycle management
+- **PIX Payments**: Generate PIX QR codes for payment
+- Mock PIX integration (ready for production provider integration)
+
+See [PIX Subscription Billing Documentation](./docs/PIX_SUBSCRIPTION_BILLING.md) for detailed information.
+
 tooling
   ├─ eslint
   │   └─ shared, fine-grained, eslint presets
