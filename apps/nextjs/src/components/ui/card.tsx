@@ -2,7 +2,7 @@ import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { cva } from "class-variance-authority";
 
-import { cn } from ".";
+import { cn } from "~/lib/utils";
 
 const cardVariants = cva(
   "rounded-lg border bg-card text-card-foreground shadow-sm",
@@ -97,9 +97,9 @@ CardFooter.displayName = "CardFooter";
 
 export {
   Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
   CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 };

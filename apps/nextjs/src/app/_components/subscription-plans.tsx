@@ -4,18 +4,18 @@ import { useState } from "react";
 import { Check, Loader2, Sparkles } from "lucide-react";
 
 import type { RouterOutputs } from "@acme/api";
+
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import {
-  Badge,
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-  cn,
-} from "@acme/ui";
-
+} from "~/components/ui/card";
+import { cn } from "~/lib/utils";
 import { useTRPC } from "~/trpc/react";
 
 export function SubscriptionPlans() {
