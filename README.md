@@ -56,6 +56,42 @@ packages
   │   └─ Typesafe db calls using Prisma & PostgreSQL
   └─ ui
       └─ Start of a UI package for the webapp using shadcn-ui
+
+## Features
+
+### 🔐 Authentication
+- Better Auth integration with Discord OAuth
+- Session management
+- Secure authentication flow
+
+### 💳 PIX Subscription Billing (SaaS)
+Complete PIX-based subscription billing system:
+- **Subscription Plans**: Create and manage subscription tiers
+- **Subscriptions**: User subscription lifecycle management
+- **PIX Payments**: Generate PIX QR codes for payment
+- Mock PIX integration (ready for production provider integration)
+
+#### Quick Start with Sample Data
+
+After setting up the database, you can seed it with sample subscription plans:
+
+```bash
+# Ensure database is running
+pnpm db:start
+
+# Seed sample subscription plans
+pnpm tsx packages/db/seed/subscription-plans.ts
+```
+
+This will create 5 sample plans:
+- Plano Básico (Mensal): R$ 29,90
+- Plano Pro (Mensal): R$ 79,90
+- Plano Enterprise (Mensal): R$ 299,90
+- Plano Básico (Anual): R$ 299,90
+- Plano Pro (Anual): R$ 799,90
+
+See [PIX Subscription Billing Documentation](./docs/PIX_SUBSCRIPTION_BILLING.md) for detailed information and [Usage Examples](./docs/PIX_SUBSCRIPTION_USAGE_EXAMPLES.md) for code examples.
+
 tooling
   ├─ eslint
   │   └─ shared, fine-grained, eslint presets

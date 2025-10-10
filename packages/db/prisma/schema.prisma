@@ -27,15 +27,17 @@ model Post {
 }
 
 model User {
-  id            String    @id
+  id            String         @id
   name          String
-  email         String    @unique
-  emailVerified Boolean   @map("email_verified")
+  email         String         @unique
+  emailVerified Boolean        @map("email_verified")
   image         String?
-  createdAt     DateTime  @map("created_at")
-  updatedAt     DateTime  @map("updated_at")
+  createdAt     DateTime       @map("created_at")
+  updatedAt     DateTime       @map("updated_at")
   sessions      Session[]
   accounts      Account[]
+  subscriptions Subscription[]
+  pixPayments   PixPayment[]
 
   @@map("user")
 }
@@ -82,4 +84,56 @@ model Verification {
   updatedAt  DateTime? @map("updated_at")
 
   @@map("verification")
+}
+
+model SubscriptionPlan {
+  id            String         @id @default(uuid()) @db.Uuid
+  name          String         @db.VarChar(256)
+  description   String?        @db.Text
+  price         Decimal        @db.Decimal(10, 2)
+  interval      String         @db.VarChar(50) // monthly, quarterly, yearly
+  features      String[]       // Array of features included in the plan
+  isActive      Boolean        @default(true) @map("is_active")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  subscriptions Subscription[]
+
+  @@map("subscription_plan")
+}
+
+model Subscription {
+  id            String           @id @default(uuid()) @db.Uuid
+  userId        String           @map("user_id")
+  planId        String           @map("plan_id") @db.Uuid
+  status        String           @db.VarChar(50) // active, cancelled, expired, pending
+  startDate     DateTime         @default(now()) @map("start_date")
+  endDate       DateTime?        @map("end_date")
+  cancelledAt   DateTime?        @map("cancelled_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan          SubscriptionPlan @relation(fields: [planId], references: [id])
+  pixPayments   PixPayment[]
+
+  @@map("subscription")
+}
+
+model PixPayment {
+  id              String        @id @default(uuid()) @db.Uuid
+  subscriptionId  String        @map("subscription_id") @db.Uuid
+  userId          String        @map("user_id")
+  amount          Decimal       @db.Decimal(10, 2)
+  status          String        @db.VarChar(50) // pending, paid, expired, cancelled
+  pixKey          String?       @map("pix_key") @db.VarChar(256) // PIX key for payment
+  pixQrCode       String?       @map("pix_qr_code") @db.Text // QR code data
+  pixCopyPaste    String?       @map("pix_copy_paste") @db.Text // PIX copy-paste code
+  expiresAt       DateTime      @map("expires_at")
+  paidAt          DateTime?     @map("paid_at")
+  transactionId   String?       @unique @map("transaction_id") @db.VarChar(256)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription    Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("pix_payment")
 }
