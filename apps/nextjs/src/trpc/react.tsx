@@ -8,7 +8,7 @@ import {
   httpBatchStreamLink,
   loggerLink,
 } from "@trpc/client";
-import { createTRPCContext } from "@trpc/tanstack-react-query";
+import { createTRPCReact } from "@trpc/react-query";
 import SuperJSON from "superjson";
 
 import type { AppRouter } from "@acme/api";
@@ -27,13 +27,13 @@ const getQueryClient = () => {
   }
 };
 
-export const { useTRPC, TRPCProvider } = createTRPCContext<AppRouter>();
+export const trpc = createTRPCReact<AppRouter>();
 
 export function TRPCReactProvider(props: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   const [trpcClient] = useState(() =>
-    createTRPCClient<AppRouter>({
+    trpc.createClient({
       links: [
         loggerLink({
           enabled: (op) =>
@@ -54,11 +54,11 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
         {props.children}
-      </TRPCProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 }
 
