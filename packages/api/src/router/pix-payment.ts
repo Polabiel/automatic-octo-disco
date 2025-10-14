@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/require-await */
-import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod/v4";
 
 import {
@@ -13,7 +12,7 @@ import {
 
 import { protectedProcedure } from "../trpc";
 
-export const pixPaymentRouter: TRPCRouterRecord = {
+export const pixPaymentRouter = {
   // Get all PIX payments for the current user
   myPayments: protectedProcedure.query(async ({ ctx }) => {
     const user = ctx.session.user as { id: string };
