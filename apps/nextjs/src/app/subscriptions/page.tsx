@@ -4,6 +4,8 @@ import { Loader2 } from "lucide-react";
 import { HydrateClient } from "~/trpc/server";
 import { SubscriptionPlans } from "../_components/subscription-plans";
 
+export const dynamic = "force-dynamic";
+
 export default function SubscriptionsPage() {
   return (
     <HydrateClient>

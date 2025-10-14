@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Check, Loader2, Sparkles } from "lucide-react";
 
 import type { RouterOutputs } from "@acme/api";
@@ -20,7 +21,9 @@ import { useTRPC } from "~/trpc/react";
 
 export function SubscriptionPlans() {
   const trpc = useTRPC();
-  const { data: plans, isLoading } = trpc.subscriptionPlan.all.useQuery();
+  const { data: plans, isLoading } = useQuery(
+    trpc.subscriptionPlan.all.queryOptions(),
+  );
 
   if (isLoading) {
     return (
