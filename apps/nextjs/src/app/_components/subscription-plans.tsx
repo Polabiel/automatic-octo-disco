@@ -17,10 +17,9 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
-import { useTRPC } from "~/trpc/react";
+import { trpc } from "~/trpc/react";
 
 export function SubscriptionPlans() {
-  const trpc = useTRPC();
   const { data: plans, isLoading } = useQuery(
     trpc.subscriptionPlan.all.queryOptions(),
   );
@@ -45,7 +44,7 @@ export function SubscriptionPlans() {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {plans.map((plan, index) => (
+      {plans?.map((plan: RouterOutputs["subscriptionPlan"]["all"][number], index: number) => (
         <PlanCard key={plan.id} plan={plan} featured={index === 1} />
       ))}
     </div>
@@ -110,7 +109,7 @@ function PlanCard({ plan, featured }: PlanCardProps) {
         </div>
 
         <div className="space-y-3">
-          {plan.features.map((feature, idx) => (
+          {plan.features.map((feature: string, idx: number) => (
             <div key={idx} className="flex items-start gap-2">
               <div className="mt-0.5 rounded-full bg-blue-500/10 p-0.5">
                 <Check className="h-4 w-4 text-blue-500" />

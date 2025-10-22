@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/require-await */
-import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod/v4";
 
 import {
@@ -12,7 +11,7 @@ import {
 
 import { protectedProcedure, publicProcedure } from "../trpc";
 
-export const subscriptionPlanRouter: TRPCRouterRecord = {
+export const subscriptionPlanRouter = {
   // Get all active subscription plans (public)
   all: publicProcedure.query(({ ctx }) => {
     return ctx.db.subscriptionPlan.findMany({

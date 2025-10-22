@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/require-await */
-import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod/v4";
 
 import {
@@ -13,7 +12,7 @@ import {
 
 import { protectedProcedure } from "../trpc";
 
-export const subscriptionRouter: TRPCRouterRecord = {
+export const subscriptionRouter = {
   // Get all subscriptions for the current user
   mySubscriptions: protectedProcedure.query(async ({ ctx }) => {
     const user = ctx.session.user as { id: string };

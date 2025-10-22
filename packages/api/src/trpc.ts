@@ -18,7 +18,7 @@ interface CreateTRPCContextOptions {
   auth: Auth;
 }
 
-interface TRPCContext {
+export interface TRPCContext {
   authApi: Auth["api"];
   session: Session | null;
   db: typeof db;

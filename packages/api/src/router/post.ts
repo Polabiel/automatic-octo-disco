@@ -1,4 +1,3 @@
-import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { CreatePostSchema } from "@acme/db/schema";
@@ -34,4 +33,4 @@ export const postRouter = {
       where: { id: input },
     });
   }),
-} satisfies TRPCRouterRecord;
+};
